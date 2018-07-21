@@ -34,4 +34,44 @@ describe('Line', () => {
       });
     });
   });
+
+  describe('#isVerse', () => {
+    context('when the line type is "verse"', () => {
+      it('returns true', () => {
+        const line = new Line();
+        line.type = 'verse';
+
+        expect(line.isVerse()).to.be.true;
+      });
+    });
+
+    context('when the line type is not "verse"', () => {
+      it('returns false', () => {
+        const line = new Line();
+        line.type = 'chorus';
+
+        expect(line.isVerse()).to.be.false;
+      });
+    });
+  });
+
+  describe('#isChorus', () => {
+    context('when the line type is "chorus"', () => {
+      it('returns true', () => {
+        const line = new Line();
+        line.type = 'chorus';
+
+        expect(line.isChorus()).to.be.true;
+      });
+    });
+
+    context('when the line type is not "chorus"', () => {
+      it('returns false', () => {
+        const line = new Line();
+        line.type = 'verse';
+
+        expect(line.isChorus()).to.be.false;
+      });
+    });
+  });
 });

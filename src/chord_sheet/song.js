@@ -31,6 +31,12 @@ export default class Song {
     return this.currentLine;
   }
 
+  setCurrentLineType(type) {
+    if (this.currentLine) {
+      this.currentLine.type = type;
+    }
+  }
+
   flushLine() {
     if (this.currentLine !== null) {
       if (this.currentLine.isEmpty()) {
