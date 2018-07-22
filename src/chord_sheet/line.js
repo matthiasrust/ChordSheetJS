@@ -54,4 +54,8 @@ export default class Line {
   isChorus() {
     return this.type === CHORUS;
   }
+
+  hasContent() {
+    return this.items.some(item => item instanceof ChordLyricsPair);
+  }
 }
