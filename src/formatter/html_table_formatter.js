@@ -1,71 +1,72 @@
-import HtmlFormatter from './html_formatter';
-import htmlEntitiesEncode from './html_entities_encode';
+import hbs from 'handlebars-inline-precompile';
 
-export default class HtmlTableFormatter extends HtmlFormatter {
-  constructor({ renderBlankLines = true } = {}) {
-    super();
-    this.renderBlankLines = renderBlankLines;
-    this.chordsLine = '';
-    this.lyricsLine = '';
-  }
+import '../handlebars_helpers';
 
-  hasDirtyLine() {
-    return this.chordsLine.length > 0 || this.lyricsLine.length > 0;
-  }
+const template = hbs`
+{{~#with song~}}
+  {{~#if title~}}
+    <h1>{{~title~}}</h1>
+  {{~/if~}}
 
-  outputPair(chords, lyrics) {
-    this.chordsLine += this.cell('chord', chords);
-    this.lyricsLine += this.cell('lyrics', lyrics);
-  }
+  {{~#if subtitle~}}
+    <h2>{{~subtitle~}}</h2>
+  {{~/if~}}
 
-  outputComment(comment) {
-    this.lyricsLine += this.comment(comment.value);
-  }
+  {{~#if bodyLines~}}
+    <div class="chord-sheet">
+      {{~#each paragraphs as |paragraph|~}}
+        <div class="{{paragraphClasses paragraph}}">
+          {{~#each lines as |line|~}}
+            {{~#if (shouldRenderLine line)~}}
+              <table class="{{lineClasses line}}">
+                {{~#if (hasChordContents line)~}}
+                  <tr>
+                    {{~#each items as |item|~}}
+                      {{~#if (isChordLyricsPair item)~}}
+                        <td class="chord">{{chords}}</td>
+                      {{~/if~}}
+                    {{~/each~}}
+                  </tr>
+                {{~/if~}}
+                  
+                {{~#if (hasTextContents line)~}}
+                  <tr>
+                    {{~#each items as |item|~}}
+                      {{~#if (isChordLyricsPair item)~}}
+                        <td class="lyrics">{{lyrics}}</td>
+                      {{~/if~}}
+              
+                      {{~#if (isTag item)~}}
+                        {{~#if (isComment item)~}}
+                          <td class="comment">{{value}}</td>
+                        {{~/if~}}
+                      {{~/if~}}
+                    {{~/each~}}
+                  </tr>
+                {{~/if~}}
+              </table>
+            {{~/if~}}
+          {{~/each~}}
+        </div>
+      {{~/each~}}
+    </div>
+  {{~/if~}}
+{{~/with~}}
+`;
 
-  finishLine() {
-    this.output(this.table(this.rowContents()));
-    this.chordsLine = '';
-    this.lyricsLine = '';
-  }
-
-  emptyLine() {
-    this.output(this.table(''));
-  }
-
-  rowContents() {
-    let rowContents = '';
-
-    if (this.chordsLine.length) {
-      rowContents += this.row(this.chordsLine);
-    }
-
-    if (this.lyricsLine.length) {
-      rowContents += this.row(this.lyricsLine);
-    }
-
-    return rowContents;
-  }
-
-  comment(comment) {
-    return this.cell('comment', comment);
-  }
-
-  cell(cssClass, value) {
-    return `<td class="${cssClass}">${htmlEntitiesEncode(value)}</td>`;
-  }
-
-  row(contents) {
-    return `<tr>${contents}</tr>`;
-  }
-
-  table(contents) {
-    const hasContents = !!contents;
-
-    if (hasContents || this.renderBlankLines) {
-      const attr = hasContents ? '' : ' class="empty-line"';
-      return `<table${attr}>${contents}</table>`;
-    }
-
-    return '';
+/**
+ * Formats a song into HTML. It uses TABLEs to align lyrics with chords, which makes the HTML for things like
+ * PDF conversion.
+ */
+class HtmlTableFormatter {
+  /**
+   * Formats a song into HTML.
+   * @param {Song} song The song to be formatted
+   * @returns {string} The HTML string
+   */
+  format(song) {
+    return template({ song });
   }
 }
+
+export default HtmlTableFormatter;

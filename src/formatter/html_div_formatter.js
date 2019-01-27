@@ -1,82 +1,55 @@
-import HtmlFormatter from './html_formatter';
-import htmlEntitiesEncode from './html_entities_encode';
+import hbs from 'handlebars-inline-precompile';
 
-export default class HtmlDivFormatter extends HtmlFormatter {
-  constructor({ renderBlankLines = true } = {}) {
-    super();
-    this.renderBlankLines = renderBlankLines;
-    this.line = '';
-  }
+import '../handlebars_helpers';
 
-  hasDirtyLine() {
-    return this.line.length > 0;
-  }
+const template = hbs`
+{{~#with song~}}
+  {{~#if title~}}
+    <h1>{{~title~}}</h1>
+  {{~/if~}}
 
-  outputSong(song) {
-    return this.div('chord-sheet', song);
-  }
+  {{~#if subtitle~}}
+    <h2>{{~subtitle~}}</h2>
+  {{~/if~}}
 
-  startOfSong() {
-    super.startOfSong();
-    this.output('<div class="chord-sheet">');
-  }
+  <div class="chord-sheet">
+    {{~#each paragraphs as |paragraph|~}}
+      <div class="{{paragraphClasses paragraph}}">
+        {{~#each lines as |line|~}}
+          {{~#if (shouldRenderLine line)~}}
+            <div class="{{lineClasses line}}">
+              {{~#each items as |item|~}}
+                {{~#if (isChordLyricsPair item)~}}
+                  <div class="column"><div class="chord">{{chords}}</div><div class="lyrics">{{lyrics}}</div></div>
+                {{~/if~}}
 
-  endOfSong() {
-    super.endOfSong();
-    this.output('</div>');
-  }
+                {{~#if (isTag item)~}}
+                  {{~#if (isComment item)~}}
+                    <div class="comment">{{value}}</div>
+                  {{~/if~}}
+                {{~/if~}}
+              {{~/each~}}
+            </div>
+          {{~/if~}}
+        {{~/each~}}
+      </div>
+    {{~/each~}}
+  </div>
+{{~/with~}}`;
 
-  outputPair(chords, lyrics) {
-    this.line += this.column(this.chord(chords) + this.lyrics(lyrics));
-  }
 
-  outputComment(comment) {
-    this.line += this.comment(comment.value);
-  }
-
-  finishLine() {
-    const row = this.row(this.line);
-    this.output(row);
-    this.line = '';
-  }
-
-  emptyLine() {
-    this.output(this.row(''));
-  }
-
-  chord(chord) {
-    return this.div('chord', htmlEntitiesEncode(chord));
-  }
-
-  lyrics(lyrics) {
-    return this.div('lyrics', htmlEntitiesEncode(lyrics));
-  }
-
-  comment(comment) {
-    return this.div('comment', comment);
-  }
-
-  div(cssClasses, value) {
-    const attr = cssClasses ? ` class="${cssClasses}"` : '';
-    return `<div${attr}>${value}</div>`;
-  }
-
-  column(contents) {
-    return this.div('column', contents);
-  }
-
-  row(contents) {
-    let cssClasses = 'row';
-    const hasContents = !!contents;
-
-    if (hasContents || this.renderBlankLines) {
-      if (!hasContents) {
-        cssClasses += ' empty-line';
-      }
-
-      return this.div(cssClasses, contents);
-    }
-
-    return '';
+/**
+ * Formats a song into HTML. It uses DIVs to align lyrics with chords, which makes it useful for responsive web pages.
+ */
+class HtmlDivFormatter {
+  /**
+   * Formats a song into HTML.
+   * @param {Song} song The song to be formatted
+   * @returns {string} The HTML string
+   */
+  format(song) {
+    return template({ song });
   }
 }
+
+export default HtmlDivFormatter;
