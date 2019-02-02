@@ -2,6 +2,8 @@ import Line from './line';
 import Tag, { META_TAGS } from './tag';
 import Paragraph from './paragraph';
 import { pushNew } from '../utilities';
+import ChordLyricsPair from "./chord_lyrics_pair";
+
 
 /**
  * Represents a song in a chord sheet. Currently a chord sheet can only have one song.
@@ -184,6 +186,49 @@ class Song {
 
   getMetaData(name) {
     return this.metaData[name] || null;
+  }
+
+  hideChords() {
+    this.lines.forEach((line) => {
+      line.items.forEach((item) => {
+        if (item instanceof ChordLyricsPair) {
+          item.chords = "";
+        }        
+      });
+    });
+  }
+
+  transpose(transpose) {
+    var transpose_chord = function( chord, trans ) {
+      var notes = ['A', 'B', 'H', 'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#'];
+      var regex = /([A-Z][b#]?)/g;
+      var modulo = function(n, m) {
+          return ((n % m) + m) % m;
+      }
+      return chord.replace( regex, function( $1 ) {
+        if( $1.length > 1 && $1[1] == 'b' ) {
+          if( $1[0] == 'A' ) {
+            $1 = "H#";
+          } else {
+            $1 = String.fromCharCode($1[0].charCodeAt() - 1) + '#';
+          }
+        }
+        var index = notes.indexOf( $1 );
+        if( index != -1 ) {
+          index = modulo( ( index + trans ), notes.length );
+          return notes[index];
+        }
+        return 'XX';
+      });
+    }
+    this.lines.forEach((line) => {
+      line.items.forEach((item) => {
+        if (item instanceof ChordLyricsPair) {
+          item.chords = transpose_chord(item.chords, transpose);
+        }        
+      });
+    });
+    return this;
   }
 }
 
