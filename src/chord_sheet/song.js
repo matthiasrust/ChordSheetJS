@@ -200,6 +200,9 @@ class Song {
 
   transpose(transpose) {
     var transpose_chord = function( chord, trans ) {
+      if (chord == 'Bb') {
+        chord = 'B';
+      }
       var notes = ['A', 'B', 'H', 'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#'];
       var regex = /([A-Z][b#]?)/g;
       var modulo = function(n, m) {
