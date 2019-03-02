@@ -112,7 +112,7 @@ const COMMENT_SHORT = 'c';
 const START_OF_CHORUS_SHORT = 'soc';
 const END_OF_CHORUS_SHORT = 'eoc';
 
-const RENDERABLE_TAGS = [COMMENT];
+const RENDERABLE_TAGS = [COMMENT, START_OF_CHORUS, START_OF_VERSE, 'comment_box'];
 
 export const META_TAGS = [
   ALBUM,

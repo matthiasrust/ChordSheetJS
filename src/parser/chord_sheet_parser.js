@@ -1,7 +1,8 @@
 import Song from '../chord_sheet/song';
 
 const WHITE_SPACE = /\s/;
-const CHORD_LINE_REGEX = /^\s*((([A-G])(#|b)?([^/\s]*)(\/([A-G])(#|b)?)?)(\s|$)+)+(\s|$)+/;
+// const CHORD_LINE_REGEX = /^\s*((([A-G])(#|b)?([^/\s]*)(\/([A-G])(#|b)?)?)(\s|$)+)+(\s|$)+/;
+const CHORD_LINE_REGEX = /^(\s|\|)*((([A-H]|[a-h])(#|b)?(m|sus|dim|maj|min|aug)?([0-9])?(\/([A-H])(#|b)?)?)(\s|$|\|)+)+(\s|$)+/;
 
 /**
  * Parses a normal chord sheet
@@ -19,9 +20,50 @@ export default class ChordSheetParser {
   parse(chordSheet) {
     this.initialize(chordSheet);
 
+    if (this.hasNextLine()) {
+      const title = this.readLine();
+      this.song.addTag('title: ' + title);
+    }
+    if (this.hasNextLine()) {
+      this.song.addLine();
+      let artist = this.readLine();
+      if (artist.trim().length > 0) {
+          artist = artist.replace(/[\(|\)]/g, '');
+          this.song.addTag('artist: ' + artist);
+      }
+    }
+
+    let expectedEndTag = '';
+    let sectionType = 'none';
     while (this.hasNextLine()) {
       const line = this.readLine();
+      if (line.match(/^\[?([1-9][\.|x]|zw\.|zw\.sp|zwsp|zwischenspiel|intro|outro|bridge|solo|\/\/.*|#.*):?/i)) {
+        this.song.addTag('comment: ' + line);
+        continue;
+      } else if (line.match(/^\[?(verse(.*)|strophe(.*)|str |str\. ):?/i)) {
+        this.song.addTag('start_of_verse: ' + line);
+        expectedEndTag = 'end_of_verse';
+        continue;
+      } else if (line.match(/^\[?(chorus|refrain|refr\.)\]?/i)) {
+        const nextline = this.lines[this.currentLine+1];
+        if (nextline && nextline.trim().length == 0) {
+          this.song.addTag('comment: ' + line);
+          this.currentLine += 1;
+        } else {
+          this.song.addTag('soc: ');
+          sectionType = 'chorus';
+          expectedEndTag = 'eoc';          
+        }
+        continue;
+      } else if (line.trim().length === 0 && expectedEndTag.length > 0) {
+        this.song.addLine();
+        this.song.addTag(expectedEndTag + ': ');
+        expectedEndTag = '';
+        sectionType = 'none';
+        continue;
+      }
       this.parseLine(line);
+      this.song.setCurrentLineType(sectionType);
     }
 
     this.song.finish();
@@ -51,6 +93,8 @@ export default class ChordSheetParser {
 
   initialize(document) {
     this.song = new Song();
+    
+    document = document.replace(/\r/g, "");
     this.lines = document.split('\n');
     this.currentLine = 0;
     this.lineCount = this.lines.length;

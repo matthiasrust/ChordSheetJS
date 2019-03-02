@@ -38,6 +38,8 @@ class ChordProParser {
   }
 
   parseDocument(document) {
+    document = document.replace(/\r/g, "");
+    
     for (let i = 0, count = document.length; i < count; i += 1) {
       this.processor(document[i]);
     }
