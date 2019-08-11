@@ -28,6 +28,7 @@
     "webpack-cli": "^3.2.1"
   },
   "scripts": {
+    "prepare": "npm run build",
     "test": "mocha --recursive --compilers js:babel-register",
     "build": "webpack",
     "build.watch": "webpack --watch",
