@@ -2,7 +2,7 @@ import Song from '../chord_sheet/song';
 
 const WHITE_SPACE = /\s/;
 // const CHORD_LINE_REGEX = /^\s*((([A-G])(#|b)?([^/\s]*)(\/([A-G])(#|b)?)?)(\s|$)+)+(\s|$)+/;
-const CHORD_LINE_REGEX = /^(\s|\|)*((([A-H]|[a-h])(#|b)?(m|sus|dim|maj|min|aug)?([0-9])?(\/([A-H])(#|b)?)?)(\s|$|\|)+)+(\s|$)+/;
+const CHORD_LINE_REGEX = /^(\s|\|)*((([A-H]|[a-h])(#|b)?(m|s|es|is|sus|dim|maj|min|aug)?([0-9])?(\/([A-H])(#|b)?)?)(\s|$|\|)+)+(\s|$)+/;
 
 /**
  * Parses a normal chord sheet

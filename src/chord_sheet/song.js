@@ -199,33 +199,59 @@ class Song {
   }
 
   transpose(transpose) {
+    // create Array for the 12 notes available
+    let chordArr = [
+      'A',
+      ['Bb','A#', 'Ais'],
+      ['B', 'H'],
+      'C', ['C#', 'Cis', 'Db', 'Des'],
+      'D', ['D#', 'Dis', 'Eb', 'Es'],
+      'E',
+      'F', ['F#', 'Fis', 'Gb', 'Ges'],
+      'G', ['G#', 'Gis', 'Ab', 'As']
+    ]
     var transpose_chord = function( chord, trans ) {
-      chord = chord.replace('Bb', 'B');
+      if (trans == 0) {
+        return chord;
+      }
+      let chordnote = 
+      chord = chord.replace('es', 'b');
+      chord = chord.replace('is', '#');
       var notes = ['A', 'B', 'H', 'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#'];
-      var regex = /([A-Z][b#]?)/g;
+
+      var regex = /([A-Z][(sus)(es)(is)sb#]?)/g;
       var modulo = function(n, m) {
           return ((n % m) + m) % m;
       }
       return chord.replace( regex, function( $1 ) {
-        if( $1.length > 1 && $1[1] == 'b' ) {
-          if( $1[0] == 'A' ) {
-            $1 = "H#";
-          } else {
-            $1 = String.fromCharCode($1[0].charCodeAt() - 1) + '#';
+        let chord = $1;
+        // if( $1.length > 1 && $1[1] == 'b' ) {  
+        //   if( chord[0] == 'A' ) {
+        //     chord = "H#";
+        //   } else {
+        //     chord = String.fromCharCode(chord[0].charCodeAt() - 1) + '#';
+        //   }
+        // }
+        var index = chordArr.findIndex( (notes) => {
+          if (!Array.isArray(notes)) {
+            notes = [notes];
           }
-        }
-        var index = notes.indexOf( $1 );
+          let note = notes.find( (note) => chord.indexOf(note) == 0)
+          return note;
+        } );
         if( index != -1 ) {
           index = modulo( ( index + trans ), notes.length );
           return notes[index];
         }
-        return 'XX';
+        return $1;
       });
     }
     this.lines.forEach((line) => {
       line.items.forEach((item) => {
         if (item instanceof ChordLyricsPair) {
-          item.chords = transpose_chord(item.chords, transpose);
+          if (item.chords != "") {
+            item.chords = transpose_chord(item.chords, transpose);
+          }
         }        
       });
     });
